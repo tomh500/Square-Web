@@ -259,7 +259,11 @@
     }
 
     function downloadYAML() {
-        const yamlStr = jsyaml.dump(yamlData, { skipInvalid: true, sortKeys: false });
+        const yamlStr = jsyaml.dump(yamlData, {
+    skipInvalid: true,
+    sortKeys: false,
+    flowLevel: 2  
+});
         const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
