@@ -4,71 +4,123 @@
     <meta charset="UTF-8">
     <title>道具配置编辑器 (YAML 版)</title>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-    <style>
-        body {
-            font-family: "Microsoft YaHei", sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        button, input[type="file"] {
-            padding: 8px 16px;
-            font-size: 16px;
-        }
-        .grenade-list {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        .grenade-entry {
-            border: 1px solid #ccc;
-            background: #fff;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .grenade-header {
-            padding: 10px 15px;
-            background: #ffdde1;
-            color: 	#c05060;  
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .grenade-body {
-            display: none;
-            padding: 15px;
-            background: #f9f9f9;
-        }
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 10px;
-        }
-        .field-group label {
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .field-group input, .field-group textarea {
-            padding: 6px;
-            font-size: 14px;
-        }
-        .inline-group {
-            display: flex;
-            gap: 10px;
-        }
-        .inline-group .field-group {
-            flex: 1;
-        }
-    </style>
+  <style>
+  /* —— 1. 定义樱花粉色系变量 —— */
+  :root {
+    --sakura-light:  #FDEFF2;  /* 浅樱花粉背景 */
+    --sakura-medium: #FFDDE1;  /* 中度樱花粉按钮、边框 */
+    --sakura-primary: #FFB7C5;  /* 樱花粉主色（突出元素） */
+    --sakura-dark:    #C05060;  /* 深樱花粉（强调文字、图标） */
+    --text-dark:      #333333; /* 主文本色 */
+    --bg-base:        #ffffff; /* 卡片、表单背景 */
+  }
+
+  /* —— 2. 全局布局 —— */
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background-color: var(--sakura-light);
+    margin: 0;
+    padding: 20px;
+    color: var(--text-dark);
+  }
+  h1 {
+    text-align: center;
+    color: var(--sakura-dark);
+  }
+
+  /* —— 3. 控件 & 按钮 —— */
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+  button, 
+  input[type="file"], 
+  select {
+    padding: 8px 16px;
+    font-size: 16px;
+    border: 1px solid var(--sakura-medium);
+    border-radius: 6px;
+    background-color: var(--sakura-medium);
+    color: var(--text-dark);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+  button:hover,
+  select:hover {
+    background-color: var(--sakura-primary);
+    border-color: var(--sakura-primary);
+  }
+
+  /* —— 4. 列表 & 卡片 —— */
+  .grenade-list {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .grenade-entry {
+    border: 1px solid var(--sakura-medium);
+    background: var(--bg-base);
+    margin-bottom: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  /* —— 5. 头部 —— */
+  .grenade-header {
+    padding: 10px 15px;
+    background: var(--sakura-primary);
+    color: var(--text-dark);
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 1px solid var(--sakura-medium);
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  }
+  .grenade-header:hover {
+    background: var(--sakura-dark);
+    color: var(--bg-base);
+  }
+
+  /* —— 6. 主体内容 —— */
+  .grenade-body {
+    display: none;
+    padding: 15px;
+    background: var(--sakura-light);
+  }
+
+  /* —— 7. 表单项 —— */
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+  .field-group label {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: var(--sakura-dark);
+  }
+  .field-group input,
+  .field-group textarea {
+    padding: 6px;
+    font-size: 14px;
+    border: 1px solid var(--sakura-medium);
+    border-radius: 4px;
+    background: var(--bg-base);
+    color: var(--text-dark);
+  }
+
+  /* —— 8. 内联组 —— */
+  .inline-group {
+    display: flex;
+    gap: 10px;
+  }
+  .inline-group .field-group {
+    flex: 1;
+  }
+</style>
+
 </head>
 <body>
 
