@@ -305,47 +305,39 @@ function quoteAllValues(obj) {
     }
 }
 
-// Updated downloadYAML: preserve select/setpos format, inline extra
 function downloadYAML() {
   const output = [];
 
   for (const [id, data] of Object.entries(yamlData)) {
-    // Deep clone & remove null/undefined/"None"
+    // Deep clone & normalize values to strings
     const cleaned = JSON.parse(JSON.stringify(data, (k, v) => {
       if (v === null || v === undefined || v === "None") return "";
       return String(v);
     }));
 
-    // Ensure select stays as array of objects with string values
-    if (Array.isArray(cleaned.select)) {
-      cleaned.select = cleaned.select.map(obj => {
-        const key = Object.keys(obj)[0];
-        return { [key]: String(obj[key]) };
-      });
-    }
-
-    // Ensure setpos stays as array of single-key objects with string values
-    if (Array.isArray(cleaned.setpos)) {
-      cleaned.setpos = cleaned.setpos.map(obj => {
-        const key = Object.keys(obj)[0];
-        return { [key]: String(obj[key]) };
-      });
-    }
+    // Ensure select/setpos as array of single-key string-valued objects
+    ['select', 'setpos'].forEach(field => {
+      if (Array.isArray(cleaned[field])) {
+        cleaned[field] = cleaned[field].map(obj => {
+          const key = Object.keys(obj)[0];
+          return { [key]: String(obj[key] ?? '') };
+        });
+      }
+    });
 
     // Ensure extra stays as an array of strings
     if (Array.isArray(cleaned.extra)) {
       cleaned.extra = cleaned.extra.map(v => String(v));
     }
 
-    // Generate YAML: block style everywhere (flowLevel -1)
+    // Generate YAML: block style, inline extra, double-quote all strings
     let yamlBlock = jsyaml.dump(
       { [id]: cleaned },
       {
         skipInvalid: true,
         sortKeys: false,
         flowLevel: -1,
-        quotingType: '"',
-        forceQuotes: true
+        styles: { '!!str': 'double' }
       }
     );
 
@@ -354,7 +346,7 @@ function downloadYAML() {
       /extra:\s*\n((?:\s*-\s*".*"\s*\n?)+)/,
       (match, group) => {
         const items = [...group.matchAll(/-\s*"(.*?)"/g)].map(m => m[1]);
-        return `extra: [${items.map(s => `"${s}"`).join(',')}]`;
+        return `extra: [${items.map(s => `"${s}"`).join(', ')}]`;
       }
     );
 
@@ -370,6 +362,7 @@ function downloadYAML() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
 </script>
 
 </body>
