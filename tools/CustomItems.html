@@ -288,17 +288,23 @@
     }
 
 function downloadYAML() {
-    // 深拷贝数据以处理 undefined 和 null
+    // 深拷贝并清洗数据（避免 null → None）
     const cleanedData = JSON.parse(JSON.stringify(yamlData, (key, value) => {
         if (value === null || value === undefined) return '';
         return value;
     }));
 
-    const yamlStr = jsyaml.dump(cleanedData, {
+    let yamlStr = jsyaml.dump(cleanedData, {
         skipInvalid: true,
         sortKeys: false,
-        flowLevel: -1  // 强制使用 block-style YAML
+        flowLevel: -1  // 全部使用 block-style
     });
+
+    // 强制将 extra 转换成 flow-style
+    yamlStr = yamlStr.replace(
+        /extra:\s*\n\s*-\s*"(.*)"\s*\n\s*-\s*"(.*)"/g,
+        (match, p1, p2) => `extra: ["${p1}", "${p2}"]`
+    );
 
     const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
     const url = URL.createObjectURL(blob);
@@ -308,6 +314,7 @@ function downloadYAML() {
     a.click();
     URL.revokeObjectURL(url);
 }
+
 
 </script>
 
