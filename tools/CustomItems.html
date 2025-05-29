@@ -287,47 +287,56 @@
         renderEditor();
     }
 
-function downloadYAML() {
-    const output = [];
 
-    for (const [id, data] of Object.entries(yamlData)) {
-        // 深拷贝并清理 null/undefined
-        const cleaned = JSON.parse(JSON.stringify(data, (key, value) => {
-            if (value === null || value === undefined) return "";
-            if (value === "None") return ""; // 特别处理 bind: None
-            return value;
-        }));
+  function downloadYAML() {
+      const lines = [];
 
-        let yamlBlock = jsyaml.dump({ [id]: cleaned }, {
-            skipInvalid: true,
-            sortKeys: false,
-            flowLevel: -1  // 全部用 block style
-        });
+      for (const [id, data] of Object.entries(yamlData)) {
+          // 顶层 ID
+          lines.push(`${id}:`);
 
-        // 将 extra 转换为 flow-style
-        yamlBlock = yamlBlock.replace(
-            /extra:\s*\n\s*-\s*"(.*)"\s*\n\s*-\s*"(.*)"/,
-            (match, p1, p2) => `extra: ["${p1}", "${p2}"]`
-        );
+          // 普通字段，一律双引号
+          ['filename', 'displayname', 'map', 'sensitivity', 'yaw', 'pitch', 'type', 'throwmode']
+              .forEach(key => {
+                  const val = data[key] ?? '';
+                  lines.push(`  ${key}: "${val}"`);
+              });
 
-        // 清理 'y': -> y: 避免加引号
-        yamlBlock = yamlBlock.replace(/'y':/g, 'y:');
+          // extra（内联数组）
+          const e0 = data.extra?.[0] ?? '';
+          const e1 = data.extra?.[1] ?? '';
+          lines.push(`  extra: ["${e0}","${e1}"]`);
 
-        output.push(yamlBlock.trim());
-    }
+          // select（block sequence + 单键 mapping）
+          lines.push(`  select:`);
+          (data.select || []).forEach((obj, i) => {
+              // 按顺序 page, slot, command, bind
+              const key = ['page','slot','command','bind'][i];
+              const val = obj[key] ?? '';
+              lines.push(`    - ${key}: "${val}"`);
+          });
 
-    // 道具之间用两个换行符分隔
-    const finalYaml = output.join('\n\n');
+          // setpos（同上）
+          lines.push(`  setpos:`);
+          (data.setpos || []).forEach((obj, i) => {
+              const key = ['x','z','y'][i];
+              const val = obj[key] ?? '';
+              lines.push(`    - ${key}: "${val}"`);
+          });
 
-    const blob = new Blob([finalYaml], { type: 'application/x-yaml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Custom.yml';
-    a.click();
-    URL.revokeObjectURL(url);
-}
+          // 各道具之间空一行
+          lines.push('');
+      }
 
+      const finalYaml = lines.join('\n');
+      const blob = new Blob([finalYaml], { type: 'application/x-yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Custom.yml';
+      a.click();
+      URL.revokeObjectURL(url);
+  }
 
 </script>
 
