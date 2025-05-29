@@ -286,14 +286,15 @@
         };
         renderEditor();
     }
-function quoteStringValues(yamlStr) {
-    // 匹配键值对中值为不带引号的字符串，排除数字、布尔、null
-    return yamlStr.replace(/^(\s*[^:\s]+:\s*)([^"\d\-\[\{truefalsenull][^\n]*)$/gmi, (match, p1, p2) => {
+function quoteAllValues(yamlStr) {
+    // 匹配冒号后面非空字符串（换行不匹配），给值加双引号
+    // 注意排除已经加引号的，避免重复
+    return yamlStr.replace(/^(\s*[^:\s]+:\s*)([^"\[\{\n][^\n]*)$/gm, (match, p1, p2) => {
         const trimmed = p2.trim();
         if (trimmed === '') return match;
-        if (/^[-+]?\d+(\.\d+)?$/.test(trimmed)) return match; // 数字不加引号
-        if (/^(true|false|null)$/i.test(trimmed)) return match; // 布尔或null不加
-        // 加双引号并转义内部双引号
+        // 避免重复加引号
+        if (trimmed.startsWith('"') && trimmed.endsWith('"')) return match;
+        // 给值加双引号并转义内部双引号
         const escaped = trimmed.replace(/"/g, '\\"');
         return `${p1}"${escaped}"`;
     });
@@ -306,7 +307,7 @@ function downloadYAML() {
         // 深拷贝并清理 null/undefined
         const cleaned = JSON.parse(JSON.stringify(data, (key, value) => {
             if (value === null || value === undefined) return "";
-            if (value === "None") return ""; // 特别处理 bind: None
+            if (value === "None") return "";
             return value;
         }));
 
@@ -325,8 +326,8 @@ function downloadYAML() {
         // 清理 'y': -> y:
         yamlBlock = yamlBlock.replace(/'y':/g, 'y:');
 
-        // 强制给字符串值加双引号
-        yamlBlock = quoteStringValues(yamlBlock);
+        // 给所有值加双引号
+        yamlBlock = quoteAllValues(yamlBlock);
 
         output.push(yamlBlock.trim());
     }
@@ -341,7 +342,6 @@ function downloadYAML() {
     a.click();
     URL.revokeObjectURL(url);
 }
-
 
 </script>
 
