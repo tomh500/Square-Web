@@ -17,36 +17,56 @@
         }
         .controls {
             display: flex;
-            justify-content: center;
             gap: 10px;
             margin-bottom: 20px;
+            justify-content: center;
         }
         button, input[type="file"] {
             padding: 8px 16px;
             font-size: 16px;
         }
-        .entry {
+        .grenade-list {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .grenade-entry {
             border: 1px solid #ccc;
             background: #fff;
             margin-bottom: 10px;
             border-radius: 6px;
+            overflow: hidden;
+        }
+        .grenade-header {
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .grenade-body {
+            display: none;
             padding: 15px;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
+            background: #f9f9f9;
         }
         .field-group {
+            display: flex;
+            flex-direction: column;
             margin-bottom: 10px;
         }
-        label {
+        .field-group label {
             font-weight: bold;
-            display: block;
             margin-bottom: 4px;
         }
-        input, textarea, select {
-            width: 100%;
+        .field-group input, .field-group textarea {
             padding: 6px;
             font-size: 14px;
+        }
+        .inline-group {
+            display: flex;
+            gap: 10px;
+        }
+        .inline-group .field-group {
+            flex: 1;
         }
     </style>
 </head>
@@ -58,106 +78,139 @@
     <button onclick="addEntry()">新增道具</button>
     <button onclick="downloadYAML()">下载YAML</button>
 </div>
-<div id="editor"></div>
+<div id="editor" class="grenade-list"></div>
 
 <script>
     let yamlData = {};
-    const SENSITIVITY = 2.52;
-    const YAW_PITCH_VALUE = 0.022;
 
     function renderEditor() {
         const container = document.getElementById('editor');
         container.innerHTML = '';
 
-        Object.entries(yamlData).forEach(([id, entry]) => {
-            const div = document.createElement('div');
-            div.className = 'entry';
+        Object.entries(yamlData).forEach(([id, g]) => {
+            const entry = document.createElement('div');
+            entry.className = 'grenade-entry';
 
-            const fields = [
-                { label: "唯一标识符 ID", key: 'id', value: id, readonly: true },
-                { label: "文件名", key: 'filename' },
-                { label: "显示名称", key: 'displayname' },
-                { label: "地图", key: 'map' },
-                { label: "类型", key: 'type' },
-                { label: "投掷方式", key: 'throwmode' },
-                { label: "灵敏度", key: 'sensitivity' },
-                { label: "Yaw", key: 'yaw' },
-                { label: "Pitch", key: 'pitch' }
-            ];
+            const header = document.createElement('div');
+            header.className = 'grenade-header';
+            header.textContent = g.displayname || id;
+            const body = document.createElement('div');
+            body.className = 'grenade-body';
 
-            fields.forEach(({ label, key, value, readonly }) => {
+            header.onclick = () => {
+                body.style.display = body.style.display === 'none' ? 'block' : 'none';
+            };
+
+            function addField(labelText, key, object = g) {
                 const group = document.createElement('div');
                 group.className = 'field-group';
 
-                const lbl = document.createElement('label');
-                lbl.textContent = label;
+                const label = document.createElement('label');
+                label.textContent = labelText;
 
                 const input = document.createElement('input');
-                input.value = value ?? entry[key] ?? '';
-                if (readonly) input.readOnly = true;
+                input.value = object[key] ?? '';
                 input.addEventListener('input', e => {
-                    if (key === 'id') return;
-                    yamlData[id][key] = e.target.value;
+                    object[key] = e.target.value;
                 });
 
-                group.appendChild(lbl);
+                group.appendChild(label);
                 group.appendChild(input);
-                div.appendChild(group);
-            });
+                body.appendChild(group);
+            }
 
-            // Extra
-            ['pre', 'post'].forEach((type, i) => {
+            // 基本字段
+            addField("显示名称", 'displayname');
+            addField("文件名", 'filename');
+            addField("地图", 'map');
+            addField("类型", 'type');
+            addField("投掷方式", 'throwmode');
+            addField("灵敏度", 'sensitivity');
+
+            // yaw / pitch
+            const angleGroup = document.createElement('div');
+            angleGroup.className = 'inline-group';
+
+            ['yaw', 'pitch'].forEach((angle) => {
                 const group = document.createElement('div');
                 group.className = 'field-group';
-                const lbl = document.createElement('label');
-                lbl.textContent = type === 'pre' ? '投掷前命令 Extra[0]' : '投掷后命令 Extra[1]';
-                const input = document.createElement('input');
-                input.value = entry.extra?.[i] || '';
-                input.addEventListener('input', e => {
-                    yamlData[id].extra = yamlData[id].extra || ['', ''];
-                    yamlData[id].extra[i] = e.target.value;
-                });
-                group.appendChild(lbl);
-                group.appendChild(input);
-                div.appendChild(group);
-            });
 
-            // Select
-            ['page', 'slot', 'command', 'bind'].forEach((selKey, i) => {
-                const group = document.createElement('div');
-                group.className = 'field-group';
-                const lbl = document.createElement('label');
-                lbl.textContent = `轮盘设置 select.${selKey}`;
-                const input = document.createElement('input');
-                input.value = entry.select?.[i]?.[selKey] || '';
-                input.addEventListener('input', e => {
-                    yamlData[id].select = yamlData[id].select || [{}, {}, {}, {}];
-                    yamlData[id].select[i][selKey] = e.target.value;
-                });
-                group.appendChild(lbl);
-                group.appendChild(input);
-                div.appendChild(group);
-            });
+                const label = document.createElement('label');
+                label.textContent = `角度 ${angle}`;
 
-            // Setpos
-            ['x', 'z', 'y'].forEach((coord, i) => {
-                const group = document.createElement('div');
-                group.className = 'field-group';
-                const lbl = document.createElement('label');
-                lbl.textContent = `坐标 setpos.${coord}`;
                 const input = document.createElement('input');
                 input.type = 'number';
-                input.value = entry.setpos?.[i]?.[coord] || 0;
+                input.value = g[angle] ?? 0;
                 input.addEventListener('input', e => {
-                    yamlData[id].setpos = yamlData[id].setpos || [{}, {}, {}];
-                    yamlData[id].setpos[i][coord] = parseFloat(e.target.value);
+                    g[angle] = parseFloat(e.target.value);
+                });
+
+                group.appendChild(label);
+                group.appendChild(input);
+                angleGroup.appendChild(group);
+            });
+
+            body.appendChild(angleGroup);
+
+            // extra
+            ['投掷前命令 (Extra[0])', '投掷后命令 (Extra[1])'].forEach((label, idx) => {
+                const group = document.createElement('div');
+                group.className = 'field-group';
+                const lbl = document.createElement('label');
+                lbl.textContent = label;
+                const input = document.createElement('input');
+                input.value = g.extra?.[idx] ?? '';
+                input.addEventListener('input', e => {
+                    g.extra = g.extra || ['', ''];
+                    g.extra[idx] = e.target.value;
                 });
                 group.appendChild(lbl);
                 group.appendChild(input);
-                div.appendChild(group);
+                body.appendChild(group);
             });
 
-            container.appendChild(div);
+            // select
+            const selectFields = ['page', 'slot', 'command', 'bind'];
+            selectFields.forEach((key, idx) => {
+                const group = document.createElement('div');
+                group.className = 'field-group';
+                const lbl = document.createElement('label');
+                lbl.textContent = `轮盘 ${key}`;
+                const input = document.createElement('input');
+                input.value = g.select?.[idx]?.[key] ?? '';
+                input.addEventListener('input', e => {
+                    g.select = g.select || [{}, {}, {}, {}];
+                    g.select[idx][key] = e.target.value;
+                });
+                group.appendChild(lbl);
+                group.appendChild(input);
+                body.appendChild(group);
+            });
+
+            // setpos x/z/y
+            const posGroup = document.createElement('div');
+            posGroup.className = 'inline-group';
+            ['x', 'z', 'y'].forEach((coord, idx) => {
+                const group = document.createElement('div');
+                group.className = 'field-group';
+                const label = document.createElement('label');
+                label.textContent = `坐标 ${coord}`;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = g.setpos?.[idx]?.[coord] ?? 0;
+                input.addEventListener('input', e => {
+                    g.setpos = g.setpos || [{}, {}, {}];
+                    g.setpos[idx][coord] = parseFloat(e.target.value);
+                });
+                group.appendChild(label);
+                group.appendChild(input);
+                posGroup.appendChild(group);
+            });
+            body.appendChild(posGroup);
+
+            entry.appendChild(header);
+            entry.appendChild(body);
+            container.appendChild(entry);
         });
     }
 
