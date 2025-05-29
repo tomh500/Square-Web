@@ -73,12 +73,7 @@
 <body>
 
 <h1>道具配置编辑器 (YAML)</h1>
-    <h4>
-        游戏内控制台输入 getpos 可以获得当前瞄点信息，将其输出结果放入配套计算器即可得到Yaw与Pitch角度
-    </h4>
-    <h4>
-        如果没有任何输出 请将UserSetting.cfg将DearMoments设置为调试模式
-    </h4>
+
 <div class="controls">
     <input type="file" id="fileInput" accept=".yml,.yaml">
     <button onclick="addEntry()">新增道具</button>
@@ -90,6 +85,12 @@
         <input type="text" id="outputYaw" placeholder="Yaw 输出" readonly>
     </div>
 </div>
+        <h4>
+        游戏内控制台输入 getpos 可以获得当前瞄点信息，将其输出结果放入配套计算器即可得到Yaw与Pitch角度
+    </h4>
+    <h4>
+        如果没有任何输出 请将UserSetting.cfg将DearMoments设置为调试模式
+    </h4>
 <div id="editor" class="grenade-list"></div>
 
 <script>
