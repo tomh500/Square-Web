@@ -258,20 +258,26 @@
         renderEditor();
     }
 
-    function downloadYAML() {
-        const yamlStr = jsyaml.dump(yamlData, {
-    skipInvalid: true,
-    sortKeys: false,
-    flowLevel: 2  
-});
-        const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Custom.yml';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+function downloadYAML() {
+    let yamlStr = jsyaml.dump(yamlData, {
+        skipInvalid: true,
+        sortKeys: false,
+        flowLevel: 2
+    });
+
+    yamlStr = yamlStr.replace(/extra:\s*\n\s*- "?"?([^"\n]*)"?\n\s*- "?"?([^"\n]*)"?/g, (match, p1, p2) => {
+        return `extra: ["${p1}", "${p2}"]`;
+    });
+
+    const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Custom.yml';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 </script>
 
 </body>
