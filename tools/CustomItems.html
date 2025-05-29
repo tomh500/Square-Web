@@ -20,8 +20,9 @@
             gap: 10px;
             margin-bottom: 20px;
             justify-content: center;
+            align-items: flex-start;
         }
-        button, input[type="file"] {
+        button, input[type="file"], input[type="text"] {
             padding: 8px 16px;
             font-size: 16px;
         }
@@ -68,6 +69,43 @@
         .inline-group .field-group {
             flex: 1;
         }
+
+        /* FOV计算器样式 */
+        .fov-container {
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 6px;
+            padding: 15px;
+            width: 320px;
+            font-size: 14px;
+            color: #333;
+            user-select: none;
+        }
+        .fov-container label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+        .fov-container input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 6px;
+            margin-bottom: 6px;
+            padding: 6px;
+            font-size: 14px;
+        }
+        .output-box {
+            background: #f0f0f0;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 4px;
+            cursor: pointer;
+            user-select: all;
+        }
+        .output-box:hover {
+            background: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -77,7 +115,18 @@
     <input type="file" id="fileInput" accept=".yml,.yaml">
     <button onclick="addEntry()">新增道具</button>
     <button onclick="downloadYAML()">下载YAML</button>
+
+    <!-- 新增 FOV 计算器区域 -->
+    <div class="fov-container" title="点击输出框复制结果">
+        <label for="fovInput">输入 X, A, B（用逗号或空格分隔）:</label>
+        <input id="fovInput" type="text" placeholder="例如：180, 2.52, 1.2" />
+        <label>计算后的 yaw:</label>
+        <div id="yawOutput" class="output-box">-</div>
+        <label>计算后的 pitch:</label>
+        <div id="pitchOutput" class="output-box">-</div>
+    </div>
 </div>
+
 <div id="editor" class="grenade-list"></div>
 
 <script>
@@ -258,25 +307,84 @@
         renderEditor();
     }
 
-function downloadYAML() {
-    let yamlStr = jsyaml.dump(yamlData, {
-        skipInvalid: true,
-        sortKeys: false,
-        flowLevel: 2
-    });
+    function downloadYAML() {
+        let yamlStr = jsyaml.dump(yamlData, {
+            skipInvalid: true,
+            sortKeys: false,
+            flowLevel: 2
+        });
 
-    yamlStr = yamlStr.replace(/extra:\s*\n\s*- "?"?([^"\n]*)"?\n\s*- "?"?([^"\n]*)"?/g, (match, p1, p2) => {
-        return `extra: ["${p1}", "${p2}"]`;
-    });
+        yamlStr = yamlStr.replace(/extra:\s*\n\s*- "?"?([^"\n]*)"?\n\s*- "?"?([^"\n]*)"?/g, (match, p1, p2) => {
+            return `extra: ["${p1}", "${p2}"]`;
+        });
 
-    const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Custom.yml';
-    a.click();
-    URL.revokeObjectURL(url);
-}
+        const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Custom.yml';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // --- FOV 计算器逻辑 ---
+    const fovInput = document.getElementById('fovInput');
+    const yawOutput = document.getElementById('yawOutput');
+    const pitchOutput = document.getElementById('pitchOutput');
+
+    function roundSix(num) {
+        return Math.round(num * 1e6) / 1e6;
+    }
+
+    function calculateFOV() {
+        const val = fovInput.value.trim();
+        if (!val) {
+            yawOutput.textContent = '-';
+            pitchOutput.textContent = '-';
+            return;
+        }
+
+        // 支持逗号或空格分隔
+        const parts = val.split(/[\s,]+/).map(s => parseFloat(s));
+        if (parts.length !== 3 || parts.some(isNaN)) {
+            yawOutput.textContent = '输入格式错误';
+            pitchOutput.textContent = '输入格式错误';
+            return;
+        }
+
+        const [X, A, B] = parts;
+        if (A === 0 || B === 0) {
+            yawOutput.textContent = 'A 或 B 不能为 0';
+            pitchOutput.textContent = 'A 或 B 不能为 0';
+            return;
+        }
+
+        const result = roundSix(X / (A * B));
+        yawOutput.textContent = result;
+        pitchOutput.textContent = result;
+    }
+
+    fovInput.addEventListener('input', calculateFOV);
+
+    // 复制功能
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('复制成功: ' + text);
+        }, () => {
+            alert('复制失败，请手动复制');
+        });
+    }
+
+    yawOutput.addEventListener('click', () => {
+        if (yawOutput.textContent && yawOutput.textContent !== '-' && !yawOutput.textContent.includes('错误')) {
+            copyToClipboard(yawOutput.textContent);
+        }
+    });
+    pitchOutput.addEventListener('click', () => {
+        if (pitchOutput.textContent && pitchOutput.textContent !== '-' && !pitchOutput.textContent.includes('错误')) {
+            copyToClipboard(pitchOutput.textContent);
+        }
+    });
 
 </script>
 
