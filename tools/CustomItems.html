@@ -286,41 +286,37 @@
         };
         renderEditor();
     }
-function quoteAllValuesRecursive(obj) {
-    if (obj === null || obj === undefined) return '""';
-
-    if (typeof obj === 'object') {
-        if (Array.isArray(obj)) {
-            return obj.map(item => quoteAllValuesRecursive(item));
-        } else {
-            const result = {};
-            for (const key in obj) {
-                result[key] = quoteAllValuesRecursive(obj[key]);
-            }
-            return result;
+// 递归把所有值都转成字符串，且加双引号
+function quoteAllValues(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(quoteAllValues);
+    } else if (obj !== null && typeof obj === 'object') {
+        const res = {};
+        for (const k in obj) {
+            res[k] = quoteAllValues(obj[k]);
         }
+        return res;
+    } else {
+        // 值转成字符串，加双引号（防止双引号重复加，可以先去除外层引号再加）
+        const strVal = String(obj);
+        // 转义双引号内部的双引号
+        const escaped = strVal.replace(/"/g, '\\"');
+        return `"${escaped}"`;
     }
-
-    const str = String(obj);
-    const escaped = str.replace(/"/g, '\\"');
-    return `"${escaped}"`;
 }
 
 function downloadYAML() {
     const output = [];
 
     for (const [id, data] of Object.entries(yamlData)) {
-        // 先深拷贝
-        const cleaned = JSON.parse(JSON.stringify(data, (key, value) => {
-            if (value === null || value === undefined) return "";
-            if (value === "None") return ""; // 特别处理 bind: None
-            return value;
+        // 深拷贝，去除null/undefined
+        let cleaned = JSON.parse(JSON.stringify(data, (k,v) => {
+            if (v === null || v === undefined) return "";
+            if (v === "None") return "";
+            return v;
         }));
 
-        // 将 extra 转换成 flow style 字符串形式 (先保留数组结构)
-        // 生成 yaml 后用正则替换
-
-        // 处理 select：把每个对象转成 "key: value" 的字符串，形成字符串数组
+        // special 处理 select: 转成字符串列表 ["key: value"]
         if (Array.isArray(cleaned.select)) {
             cleaned.select = cleaned.select.map(obj => {
                 const key = Object.keys(obj)[0];
@@ -329,13 +325,23 @@ function downloadYAML() {
             });
         }
 
+        // special 处理 extra，保持数组，后续转成 flow style
+        // 这里直接转成字符串数组（因为会加双引号）
+        if (Array.isArray(cleaned.extra)) {
+            cleaned.extra = cleaned.extra.map(v => v);
+        }
+
+        // 对所有字段都加双引号
+        cleaned = quoteAllValues(cleaned);
+
+        // 生成yaml
         let yamlBlock = jsyaml.dump({ [id]: cleaned }, {
             skipInvalid: true,
             sortKeys: false,
-            flowLevel: -1  // 全部用 block style
+            flowLevel: -1
         });
 
-        // 替换 extra 数组为 flow style
+        // 将 extra 部分从块格式转换成 flow style
         yamlBlock = yamlBlock.replace(
             /extra:\s*\n((\s*-\s*".*"\n?)+)/,
             (match, group) => {
