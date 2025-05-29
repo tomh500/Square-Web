@@ -1,184 +1,233 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SquareConfig For Counter-Strike2</title>
-  <!-- Bootstrap -->
-  <link href="css/bootstrap-4.4.1.css" rel="stylesheet">
-  <link href="css/showimg.css" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="css/bootstrap-4.4.1.css" rel="stylesheet" />
+  <!-- Custom Styles -->
   <style>
-    /* 通用弹窗样式 */
-    .popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-             background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
-    .popup-content { position: relative; background: #fff; padding: 1rem; border-radius: .5rem; max-width: 90%; }
-    .popup-close { position: absolute; top: .5rem; right: .5rem; font-size: 1.5rem; cursor: pointer; }
+    /* === 主题色：日系樱花粉 === */
+    :root {
+      --sakura-light:  #FDEFF2;
+      --sakura-medium: #FFDDE1;
+      --sakura-primary:#FFB7C5;
+      --sakura-dark:   #C05060;
+      --text-dark:     #333333;
+      --glass-bg:      rgba(255,255,255,0.3);
+      --glass-border:  rgba(255,255,255,0.5);
+      --glass-blur:    10px;
+    }
+    /* 全局背景 */
+    body {
+      font-family: "Microsoft YaHei",sans-serif;
+      background: url('images/bg-1920x1080.jpg') center/cover fixed;
+      margin:0; padding:0;
+      color: var(--text-dark);
+    }
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border:1px solid var(--glass-border);
+      border-radius:8px;
+      padding:1rem;
+    }
+    /* Navbar */
+    .navbar {
+      background: var(--sakura-dark) !important;
+    }
+    .navbar-brand, .nav-link {
+      color: #fff !important;
+    }
+    .nav-link:hover {
+      color: var(--sakura-light) !important;
+    }
+    /* Jumbotron */
+    .jumbotron {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      margin-top:1rem;
+    }
+    /* Buttons & Inputs */
+    .btn-sakura {
+      background-color: var(--sakura-medium);
+      color: var(--text-dark);
+      border:1px solid var(--sakura-primary);
+      border-radius:6px;
+      transition: background .3s;
+    }
+    .btn-sakura:hover {
+      background-color: var(--sakura-primary);
+      color: #fff;
+    }
+    /* Cards */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border:none;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card-title {
+      color: var(--sakura-dark);
+    }
+    .card-text {
+      color: var(--text-dark);
+    }
+    /* Footer */
+    footer {
+      padding:2rem 0;
+      background: var(--sakura-medium);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <div class="dropdown">
-        <a class="navbar-brand dropdown-toggle" href="#" id="brandDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          无损平方集团
-        </a>
-        <div class="dropdown-menu" aria-labelledby="brandDropdown">
-          <a class="dropdown-item" href="#">集团简介</a>
-          <a class="dropdown-item" href="#">团队成员</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">其他产品</a>
-        </div>
-      </div>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="mainNav">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item active"><a class="nav-link" href="#">主页</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="solutionsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">相关链接</a>
-            <div class="dropdown-menu" aria-labelledby="solutionsDropdown">
-              <a class="dropdown-item" href="https://discord.com/invite/8JFZnYVtYS">DearMoments</a>
-              <a class="dropdown-item" href="https://tomh500.github.io/Square-Web/tools/CustomItems.html">自动道具YML在线修改</a>
-              <a class="dropdown-item" href="https://horizoncfg.top/scfgGen">自动身法Lua文件可视化在线编程</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">其他产品</a>
-            </div>
-          </li>
-        </ul>
-      </div>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <a class="navbar-brand" href="#">无损平方集团</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse"
+      data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+      aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item active"><a class="nav-link" href="#">主页</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">链接</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            解决方案
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">DearMoments</a>
+            <a class="dropdown-item" href="#">Square Legacy</a>
+            <a class="dropdown-item" href="#">Square Lite</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">其他产品</a>
+          </div>
+        </li>
+      </ul>
     </div>
   </nav>
 
-  <!-- 欢迎弹窗 -->
-<div id="welcomePopup" class="popup">
-  <div class="popup-content text-center">
-    <span id="welcomeClose" class="popup-close">&times;</span>
-    <p style="margin-top:2rem; font-size:1.2rem;">欢迎浏览本网站</p>
-  </div>
-</div>
-
-  <!-- 产品弹窗 -->
-  <div id="productPopup" class="popup">
-    <div class="popup-content d-flex justify-content-center align-items-center">
-      <span id="productClose" class="popup-close">&times;</span>
-      <img src="images/bm.jpg" alt="报名图片" class="popup-image">
-    </div>
-  </div>
-
-  <audio id="bgm" preload="auto" src="sounds/bgm.mp3"></audio>
-
-  <header class="container mt-4">
+  <!-- Main Jumbotron -->
+  <div class="container">
     <div class="jumbotron text-center">
       <h1>DearMoments For CS2</h1>
+      <p class="lead">这是一种游戏方式</p>
       <p>
-        <button id="btnShow" class="btn btn-success btn-lg mr-2">获取产品</button>
+        <a id="btn-showimg" class="btn btn-sakura btn-lg mr-2" href="#" role="button">获取产品</a>
         <a class="btn btn-primary btn-lg" href="https://github.com/tomh500/MoClient" role="button">开源地址</a>
       </p>
-      <p>这是一种游戏方式</p>
-      <img src="images/CS2.jpg" alt="CS2" class="img-fluid">
+      <img src="images/CS2.jpg" alt="CS2" class="img-fluid mt-3 rounded" />
     </div>
-  </header>
+  </div>
 
-  <section class="container mb-4">
+  <!-- Solution Cards -->
+  <div class="container mb-4">
     <div class="row">
       <div class="col-md-6 text-center mb-3">
         <h3>其他产品</h3>
         <p>不止本CFG，还有更多精彩</p>
-        <a class="btn btn-info" href="https://www.luotiany1.cn">了解更多</a>
+        <a class="btn btn-info btn-sakura" href="https://www.luotiany1.cn" role="button">了解更多</a>
       </div>
       <div class="col-md-6 text-center mb-3">
         <h3>C+ Major</h3>
         <p>支持全分段玩家报名，仅供内部人员使用</p>
-        <a class="btn btn-info" href="https://major.luotiany1.cn">了解更多</a>
+        <a class="btn btn-info btn-sakura" href="https://major.luotiany1.cn" role="button">了解更多</a>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="container mb-4">
+  <!-- Features -->
+  <div class="container mb-4">
     <div class="row text-center">
-      <div class="col-sm-6 col-lg-3 mb-3">
-        <h2>竞技性</h2>
-        <p>提供多模块，组合设置获取竞技优势</p>
+      <div class="col-lg-3 col-sm-6 mb-3">
+        <div class="glass p-3">
+          <h4>竞技性</h4>
+          <p>提供可拆卸模组，获取竞技优势</p>
+        </div>
       </div>
-      <div class="col-sm-6 col-lg-3 mb-3">
-        <h2>娱乐性</h2>
-        <p>丰富娱乐项目，小功能增趣</p>
+      <div class="col-lg-3 col-sm-6 mb-3">
+        <div class="glass p-3">
+          <h4>娱乐性</h4>
+          <p>丰富娱乐项目，小功能也趣味</p>
+        </div>
       </div>
-      <div class="col-sm-6 col-lg-3 mb-3">
-        <h2>公平性</h2>
-        <p>仅为CFG，VAC风险极低</p>
+      <div class="col-lg-3 col-sm-6 mb-3">
+        <div class="glass p-3">
+          <h4>公平性</h4>
+          <p>非VAC封禁，仅为CFG配置</p>
+        </div>
       </div>
-      <div class="col-sm-6 col-lg-3 mb-3">
-        <h2>正规性</h2>
-        <p>T0梯队研发，开源无毒</p>
+      <div class="col-lg-3 col-sm-6 mb-3">
+        <div class="glass p-3">
+          <h4>正规性</h4>
+          <p>开源无毒，T0梯队研发</p>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 
+  <!-- Video Tutorial -->
   <section class="container mb-4">
-    <h2 class="text-center">Video Tutorial</h2>
+    <h2 class="text-center mb-3">Video Tutorial</h2>
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://player.bilibili.com/player.html?aid=113746722690510&bvid=BV14g6JYuEHA&cid=27627294181&p=1" allowfullscreen></iframe>
+      <iframe class="embed-responsive-item rounded"
+        src="https://player.bilibili.com/player.html?aid=113746722690510&bvid=BV14g6JYuEHA&cid=27627294181&p=1"
+        allowfullscreen></iframe>
     </div>
   </section>
 
-  <section class="container mb-4">
+  <!-- Product Cards -->
+  <div class="container mb-4">
     <div class="row">
       <div class="col-md-6 mb-3">
         <div class="card">
-          <img class="card-img-top" src="images/logo.png" alt="DearMoments Logo">
+          <img class="card-img-top" src="images/logo.png" alt="DearMoments" />
           <div class="card-body">
             <h5 class="card-title">DearMoments</h5>
-            <ul>
-              <li>20+可定制模组，随心配置</li>
-              <li>先进视觉设计，一流优化</li>
-              <li>获取游戏优势，风险可控</li>
-              <li>持续更新，更多功能</li>
+            <ul class="list-unstyled">
+              <li>① 超过20+自定义模组</li>
+              <li>② 一流视觉设计，T0 CFG</li>
+              <li>③ 界面优化，无侵入</li>
+              <li>④ 持续更新，功能丰富</li>
             </ul>
-            <a href="download.html" class="btn btn-primary">免费获取</a>
+            <a href="download.html" class="btn btn-sakura">免费获取</a>
           </div>
         </div>
       </div>
       <div class="col-md-6 mb-3">
         <div class="card">
-          <img class="card-img-top" src="images/coin.png" alt="Lite Logo">
+          <img class="card-img-top" src="images/coin.png" alt="DearMoments Lite" />
           <div class="card-body">
             <h5 class="card-title">DearMoments Lite</h5>
-            <ul>
-              <li>轻量一体式CFG</li>
-              <li>GBK环境生成器</li>
-              <li>绕过屏幕共享验证</li>
-              <li>绝对值得</li>
+            <ul class="list-unstyled">
+              <li>① 轻量化一体式CFG</li>
+              <li>② GBK环境下稳定</li>
+              <li>③ 绕过屏幕共享验证</li>
+              <li>④ 值得拥有</li>
             </ul>
-            <a href="download_L.html" class="btn btn-primary">免费获取</a>
+            <a href="download_L.html" class="btn btn-sakura">免费获取</a>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <footer class="bg-light py-4">
+  <!-- Contact & Footer -->
+  <footer class="text-center">
     <div class="container">
-      <div class="row">
-        <div class="col-md-4 mb-3">
-          <h5>联系我们</h5>
-          <address>
-            <strong>DearMoments Team</strong><br>
-            QQ Group: 1007991448
-          </address>
-        </div>
-        <div class="col-md-4 mb-3">
-          <h5>用户评价</h5>
-          <p>亨利：这是我用过最棒的CFG。</p>
-          <p>爱丽色：我弱小得如同海底的瓜牛一样。</p>
-        </div>
-        <div class="col-md-4 text-center">
-          <p>期待你的评价！下载使用吧，就是现在！</p>
-          <p>Copyright © DearMoments^2. All rights reserved.</p>
-        </div>
-      </div>
+      <h4>联系我们</h4>
+      <p>QQ 群: 1007991448</p>
+      <p>Copyright © DearMoments². All rights reserved.</p>
     </div>
   </footer>
 
@@ -186,41 +235,7 @@
   <script src="js/jquery-3.4.1.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/bootstrap-4.4.1.js"></script>
- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-  const welcomePopup = document.getElementById('welcomePopup');
-  const welcomeClose = document.getElementById('welcomeClose');
-  const bgm = document.getElementById('bgm');
-      const productPopup = document.getElementById('productPopup');
-      const btnShow = document.getElementById('btnShow');
-      const productClose = document.getElementById('productClose');
-
-      // 页面加载时显示欢迎弹窗
-  // 页面加载时显示欢迎弹窗
-  welcomePopup.classList.add('d-flex');
-
-  // 关闭弹窗时移除 d-flex
-  function closeWelcome() {
-    welcomePopup.classList.remove('d-flex');
-    bgm.play();
-  }
-        welcomeClose.addEventListener('click', closeWelcome);
-  welcomePopup.addEventListener('click', e => {
-    if (e.target === welcomePopup) closeWelcome();
-  });
-});
-
-      // 产品弹窗逻辑
-      btnShow.addEventListener('click', () => {
-        productPopup.style.display = 'flex';
-      });
-      productClose.addEventListener('click', () => {
-        productPopup.style.display = 'none';
-      });
-      productPopup.addEventListener('click', e => {
-        if (e.target === productPopup) productPopup.style.display = 'none';
-      });
-    });
-  </script>
+  <script src="js/showimg.js"></script>
+  <script src="js/popup.js"></script>
 </body>
 </html>
