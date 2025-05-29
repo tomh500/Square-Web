@@ -310,30 +310,39 @@ function downloadYAML() {
     const output = [];
 
     for (const [id, data] of Object.entries(yamlData)) {
-        // 先深拷贝，替换 null/undefined 和 "None" 字符串
+        // 先深拷贝
         const cleaned = JSON.parse(JSON.stringify(data, (key, value) => {
             if (value === null || value === undefined) return "";
-            if (value === "None") return "";
+            if (value === "None") return ""; // 特别处理 bind: None
             return value;
         }));
 
-        // 给所有数值加引号
-        const quotedData = quoteAllValuesRecursive(cleaned);
+        // 将 extra 转换成 flow style 字符串形式 (先保留数组结构)
+        // 生成 yaml 后用正则替换
 
-        let yamlBlock = jsyaml.dump({ [id]: quotedData }, {
+        // 处理 select：把每个对象转成 "key: value" 的字符串，形成字符串数组
+        if (Array.isArray(cleaned.select)) {
+            cleaned.select = cleaned.select.map(obj => {
+                const key = Object.keys(obj)[0];
+                const val = obj[key];
+                return `${key}: ${val}`;
+            });
+        }
+
+        let yamlBlock = jsyaml.dump({ [id]: cleaned }, {
             skipInvalid: true,
             sortKeys: false,
-            flowLevel: -1
+            flowLevel: -1  // 全部用 block style
         });
 
-        // 保持 extra 以 flow style 数组显示（["", ""]）
+        // 替换 extra 数组为 flow style
         yamlBlock = yamlBlock.replace(
-            /extra:\s*\n\s*-\s*"(.*)"\s*\n\s*-\s*"(.*)"/,
-            (match, p1, p2) => `extra: ["${p1}", "${p2}"]`
+            /extra:\s*\n((\s*-\s*".*"\n?)+)/,
+            (match, group) => {
+                const items = [...group.matchAll(/-\s*"(.*?)"/g)].map(m => m[1]);
+                return `extra: [${items.map(s => `"${s}"`).join(', ')}]`;
+            }
         );
-
-        // 去除 y 的单引号（如果有）
-        yamlBlock = yamlBlock.replace(/'y':/g, 'y:');
 
         output.push(yamlBlock.trim());
     }
@@ -348,6 +357,7 @@ function downloadYAML() {
     a.click();
     URL.revokeObjectURL(url);
 }
+
 
 </script>
 
