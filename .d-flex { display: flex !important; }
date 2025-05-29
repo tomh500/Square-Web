@@ -52,12 +52,12 @@
   </nav>
 
   <!-- 欢迎弹窗 -->
-  <div id="welcomePopup" class="popup d-flex">
-    <div class="popup-content text-center">
-      <span id="welcomeClose" class="popup-close">&times;</span>
-      <p style="margin-top:2rem; font-size:1.2rem;">欢迎浏览本网站</p>
-    </div>
+<div id="welcomePopup" class="popup">
+  <div class="popup-content text-center">
+    <span id="welcomeClose" class="popup-close">&times;</span>
+    <p style="margin-top:2rem; font-size:1.2rem;">欢迎浏览本网站</p>
   </div>
+</div>
 
   <!-- 产品弹窗 -->
   <div id="productPopup" class="popup">
@@ -188,27 +188,27 @@
   <script src="js/bootstrap-4.4.1.js"></script>
  <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const welcomePopup = document.getElementById('welcomePopup');
-      const welcomeClose = document.getElementById('welcomeClose');
-      const bgm = document.getElementById('bgm');
+  const welcomePopup = document.getElementById('welcomePopup');
+  const welcomeClose = document.getElementById('welcomeClose');
+  const bgm = document.getElementById('bgm');
       const productPopup = document.getElementById('productPopup');
       const btnShow = document.getElementById('btnShow');
       const productClose = document.getElementById('productClose');
 
       // 页面加载时显示欢迎弹窗
-      welcomePopup.style.display = 'flex';
+  // 页面加载时显示欢迎弹窗
+  welcomePopup.classList.add('d-flex');
 
-      // 欢迎弹窗关闭逻辑
-      welcomeClose.addEventListener('click', () => {
-        welcomePopup.style.display = 'none';
-        bgm.play();
-      });
-      welcomePopup.addEventListener('click', e => {
-        if (e.target === welcomePopup) {
-          welcomePopup.style.display = 'none';
-          bgm.play();
-        }
-      });
+  // 关闭弹窗时移除 d-flex
+  function closeWelcome() {
+    welcomePopup.classList.remove('d-flex');
+    bgm.play();
+  }
+        welcomeClose.addEventListener('click', closeWelcome);
+  welcomePopup.addEventListener('click', e => {
+    if (e.target === welcomePopup) closeWelcome();
+  });
+});
 
       // 产品弹窗逻辑
       btnShow.addEventListener('click', () => {
