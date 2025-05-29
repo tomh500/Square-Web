@@ -306,64 +306,53 @@ function quoteAllValues(obj) {
 }
 
 function downloadYAML() {
-    const output = [];
+  const output = [];
 
-    for (const [id, data] of Object.entries(yamlData)) {
-        // 深拷贝，去除null/undefined
-        let cleaned = JSON.parse(JSON.stringify(data, (k,v) => {
-            if (v === null || v === undefined) return "";
-            if (v === "None") return "";
-            return v;
-        }));
+  for (const [id, data] of Object.entries(yamlData)) {
+    // Deep clone & remove null/undefined/"None"
+    const cleaned = JSON.parse(JSON.stringify(data, (k, v) => {
+      if (v === null || v === undefined || v === "None") return "";
+      return String(v);
+    }));
 
-        // special 处理 select: 转成字符串列表 ["key: value"]
-        if (Array.isArray(cleaned.select)) {
-            cleaned.select = cleaned.select.map(obj => {
-                const key = Object.keys(obj)[0];
-                const val = obj[key];
-                return `${key}: ${val}`;
-            });
-        }
-
-        // special 处理 extra，保持数组，后续转成 flow style
-        // 这里直接转成字符串数组（因为会加双引号）
-        if (Array.isArray(cleaned.extra)) {
-            cleaned.extra = cleaned.extra.map(v => v);
-        }
-
-        // 对所有字段都加双引号
-        cleaned = quoteAllValues(cleaned);
-
-        // 生成yaml
-        let yamlBlock = jsyaml.dump({ [id]: cleaned }, {
-            skipInvalid: true,
-            sortKeys: false,
-            flowLevel: -1
-        });
-
-        // 将 extra 部分从块格式转换成 flow style
-        yamlBlock = yamlBlock.replace(
-            /extra:\s*\n((\s*-\s*".*"\n?)+)/,
-            (match, group) => {
-                const items = [...group.matchAll(/-\s*"(.*?)"/g)].map(m => m[1]);
-                return `extra: [${items.map(s => `"${s}"`).join(', ')}]`;
-            }
-        );
-
-        output.push(yamlBlock.trim());
+    // Transform select array into list of "key: value" strings
+    if (Array.isArray(cleaned.select)) {
+      cleaned.select = cleaned.select.map(obj => {
+        const key = Object.keys(obj)[0];
+        return `${key}: ${obj[key]}`;
+      });
     }
 
-    const finalYaml = output.join('\n\n');
+    // Ensure extra stays as an array of strings
+    if (Array.isArray(cleaned.extra)) {
+      cleaned.extra = cleaned.extra.map(v => String(v));
+    }
 
-    const blob = new Blob([finalYaml], { type: 'application/x-yaml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Custom.yml';
-    a.click();
-    URL.revokeObjectURL(url);
+    // Use js-yaml dump with forced double quotes and inline arrays
+    let yamlBlock = jsyaml.dump(
+      { [id]: cleaned },
+      {
+        skipInvalid: true,
+        sortKeys: false,
+        lineWidth: -1,
+        flowLevel: 1,
+        quotingType: '"',
+        forceQuotes: true
+      }
+    );
+
+    output.push(yamlBlock.trim());
+  }
+
+  const finalYaml = output.join('\n\n');
+  const blob = new Blob([finalYaml], { type: 'application/x-yaml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Custom.yml';
+  a.click();
+  URL.revokeObjectURL(url);
 }
-
 
 </script>
 
