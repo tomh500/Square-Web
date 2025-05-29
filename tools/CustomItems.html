@@ -305,6 +305,7 @@ function quoteAllValues(obj) {
     }
 }
 
+// Updated downloadYAML: preserve select/setpos format, inline extra
 function downloadYAML() {
   const output = [];
 
@@ -315,11 +316,19 @@ function downloadYAML() {
       return String(v);
     }));
 
-    // Transform select array into list of "key: value" strings
+    // Ensure select stays as array of objects with string values
     if (Array.isArray(cleaned.select)) {
       cleaned.select = cleaned.select.map(obj => {
         const key = Object.keys(obj)[0];
-        return `${key}: ${obj[key]}`;
+        return { [key]: String(obj[key]) };
+      });
+    }
+
+    // Ensure setpos stays as array of single-key objects with string values
+    if (Array.isArray(cleaned.setpos)) {
+      cleaned.setpos = cleaned.setpos.map(obj => {
+        const key = Object.keys(obj)[0];
+        return { [key]: String(obj[key]) };
       });
     }
 
@@ -328,16 +337,24 @@ function downloadYAML() {
       cleaned.extra = cleaned.extra.map(v => String(v));
     }
 
-    // Use js-yaml dump with forced double quotes and inline arrays
+    // Generate YAML: block style everywhere (flowLevel -1)
     let yamlBlock = jsyaml.dump(
       { [id]: cleaned },
       {
         skipInvalid: true,
         sortKeys: false,
-        lineWidth: -1,
-        flowLevel: 1,
+        flowLevel: -1,
         quotingType: '"',
         forceQuotes: true
+      }
+    );
+
+    // Inline extra array to flow style
+    yamlBlock = yamlBlock.replace(
+      /extra:\s*\n((?:\s*-\s*".*"\s*\n?)+)/,
+      (match, group) => {
+        const items = [...group.matchAll(/-\s*"(.*?)"/g)].map(m => m[1]);
+        return `extra: [${items.map(s => `"${s}"`).join(',')}]`;
       }
     );
 
@@ -353,7 +370,6 @@ function downloadYAML() {
   a.click();
   URL.revokeObjectURL(url);
 }
-
 </script>
 
 </body>
