@@ -19,10 +19,9 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            justify-content: flex-start;
-            align-items: flex-start;
+            justify-content: center;
         }
-        button, input[type="file"], input[type="text"] {
+        button, input[type="file"] {
             padding: 8px 16px;
             font-size: 16px;
         }
@@ -69,64 +68,16 @@
         .inline-group .field-group {
             flex: 1;
         }
-        .fov-container {
-            border: 1px solid #ccc;
-            background: #fff;
-            border-radius: 6px;
-            padding: 15px;
-            width: 360px;
-            font-size: 14px;
-            color: #333;
-            margin-left: auto;
-            margin-right: 0;
-        }
-        .fov-container label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
-        .fov-container input[type="text"] {
-            width: 100%;
-            box-sizing: border-box;
-            margin-top: 6px;
-            margin-bottom: 6px;
-            padding: 6px;
-            font-size: 14px;
-        }
-        .output-box {
-            background: #f0f0f0;
-            border: 1px solid #bbb;
-            border-radius: 4px;
-            padding: 8px;
-            margin-top: 4px;
-            cursor: pointer;
-            user-select: all;
-        }
-        .output-box:hover {
-            background: #e0e0e0;
-        }
     </style>
 </head>
 <body>
 
 <h1>道具配置编辑器 (YAML)</h1>
 <div class="controls">
-    <div>
-        <input type="file" id="fileInput" accept=".yml,.yaml">
-        <button onclick="addEntry()">新增道具</button>
-        <button onclick="downloadYAML()">下载YAML</button>
-    </div>
-
-    <div class="fov-container" title="点击输出框复制结果">
-        <label for="fovInput">输入 setpos 和 setang 指令:</label>
-        <input id="fovInput" type="text" placeholder='例如：setpos 0 0 0; setang 45 90 0' />
-        <label>计算后的 pitch:</label>
-        <div id="pitchOutput" class="output-box">-</div>
-        <label>计算后的 yaw:</label>
-        <div id="yawOutput" class="output-box">-</div>
-    </div>
+    <input type="file" id="fileInput" accept=".yml,.yaml">
+    <button onclick="addEntry()">新增道具</button>
+    <button onclick="downloadYAML()">下载YAML</button>
 </div>
-
 <div id="editor" class="grenade-list"></div>
 
 <script>
@@ -151,22 +102,7 @@
                 body.style.display = body.style.display === 'none' ? 'block' : 'none';
             };
 
-            // 添加字段
-            function addField(labelText, key, object = g) {
-                const group = document.createElement('div');
-                group.className = 'field-group';
-                const label = document.createElement('label');
-                label.textContent = labelText;
-                const input = document.createElement('input');
-                input.value = object[key] ?? '';
-                input.addEventListener('input', e => {
-                    object[key] = e.target.value;
-                });
-                group.appendChild(label);
-                group.appendChild(input);
-                body.appendChild(group);
-            }
-
+            // ✅ 唯一标识符 ID 输入
             const idGroup = document.createElement('div');
             idGroup.className = 'field-group';
             const idLabel = document.createElement('label');
@@ -187,6 +123,22 @@
             idGroup.appendChild(idLabel);
             idGroup.appendChild(idInput);
             body.appendChild(idGroup);
+
+            // 字段辅助函数
+            function addField(labelText, key, object = g) {
+                const group = document.createElement('div');
+                group.className = 'field-group';
+                const label = document.createElement('label');
+                label.textContent = labelText;
+                const input = document.createElement('input');
+                input.value = object[key] ?? '';
+                input.addEventListener('input', e => {
+                    object[key] = e.target.value;
+                });
+                group.appendChild(label);
+                group.appendChild(input);
+                body.appendChild(group);
+            }
 
             addField("显示名称", 'displayname');
             addField("文件名", 'filename');
@@ -306,44 +258,27 @@
         renderEditor();
     }
 
-    function downloadYAML() {
-        let yamlStr = jsyaml.dump(yamlData, {
-            skipInvalid: true,
-            sortKeys: false,
-            flowLevel: 2
-        });
+function downloadYAML() {
+    let yamlStr = jsyaml.dump(yamlData, {
+        skipInvalid: true,
+        sortKeys: false,
+        flowLevel: 2
+    });
 
-        yamlStr = yamlStr.replace(/extra:\s*\n\s*- "?"?([^"\n]*)"?\n\s*- "?"?([^"\n]*)"?/g, (match, p1, p2) => {
-            return `extra: ["${p1}", "${p2}"]`;
-        });
+    yamlStr = yamlStr.replace(/extra:\s*\n\s*- "?"?([^"\n]*)"?\n\s*- "?"?([^"\n]*)"?/g, (match, p1, p2) => {
+        return `extra: ["${p1}", "${p2}"]`;
+    });
 
-        const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Custom.yml';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+    const blob = new Blob([yamlStr], { type: 'application/x-yaml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Custom.yml';
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-    // --- 替换后的 FOV 逻辑（提取 pitch/yaw） ---
-    const fovInput = document.getElementById('fovInput');
-    const yawOutput = document.getElementById('yawOutput');
-    const pitchOutput = document.getElementById('pitchOutput');
+</script>
 
-    fovInput.addEventListener('input', () => {
-        const val = fovInput.value.trim();
-        const regex = /setang\s+([-\d.]+)\s+([-\d.]+)/i;
-        const match = val.match(regex);
-        if (!match) {
-            yawOutput.textContent = '格式错误';
-            pitchOutput.textContent = '格式错误';
-            return;
-        }
-
-        const pitch = parseFloat(match[1]);
-        const yaw = parseFloat(match[2]);
-        const sensitivity = 2.52;
-        const m_yaw_pitch = 0.022;
-
-        if (isNaN(pitch) || isNaN(y
+</body>
+</html>
