@@ -94,6 +94,7 @@
             const header = document.createElement('div');
             header.className = 'grenade-header';
             header.textContent = g.displayname || id;
+
             const body = document.createElement('div');
             body.className = 'grenade-body';
 
@@ -101,25 +102,44 @@
                 body.style.display = body.style.display === 'none' ? 'block' : 'none';
             };
 
+            // ✅ 唯一标识符 ID 输入
+            const idGroup = document.createElement('div');
+            idGroup.className = 'field-group';
+            const idLabel = document.createElement('label');
+            idLabel.textContent = '唯一标识符 ID';
+            const idInput = document.createElement('input');
+            idInput.value = id;
+            idInput.addEventListener('change', (e) => {
+                const newId = e.target.value.trim();
+                if (!newId || newId === id || yamlData[newId]) {
+                    alert("ID 无效或已存在！");
+                    idInput.value = id;
+                    return;
+                }
+                yamlData[newId] = yamlData[id];
+                delete yamlData[id];
+                renderEditor();
+            });
+            idGroup.appendChild(idLabel);
+            idGroup.appendChild(idInput);
+            body.appendChild(idGroup);
+
+            // 字段辅助函数
             function addField(labelText, key, object = g) {
                 const group = document.createElement('div');
                 group.className = 'field-group';
-
                 const label = document.createElement('label');
                 label.textContent = labelText;
-
                 const input = document.createElement('input');
                 input.value = object[key] ?? '';
                 input.addEventListener('input', e => {
                     object[key] = e.target.value;
                 });
-
                 group.appendChild(label);
                 group.appendChild(input);
                 body.appendChild(group);
             }
 
-            // 基本字段
             addField("显示名称", 'displayname');
             addField("文件名", 'filename');
             addField("地图", 'map');
@@ -127,32 +147,25 @@
             addField("投掷方式", 'throwmode');
             addField("灵敏度", 'sensitivity');
 
-            // yaw / pitch
             const angleGroup = document.createElement('div');
             angleGroup.className = 'inline-group';
-
             ['yaw', 'pitch'].forEach((angle) => {
                 const group = document.createElement('div');
                 group.className = 'field-group';
-
                 const label = document.createElement('label');
                 label.textContent = `角度 ${angle}`;
-
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.value = g[angle] ?? 0;
                 input.addEventListener('input', e => {
                     g[angle] = parseFloat(e.target.value);
                 });
-
                 group.appendChild(label);
                 group.appendChild(input);
                 angleGroup.appendChild(group);
             });
-
             body.appendChild(angleGroup);
 
-            // extra
             ['投掷前命令 (Extra[0])', '投掷后命令 (Extra[1])'].forEach((label, idx) => {
                 const group = document.createElement('div');
                 group.className = 'field-group';
@@ -169,7 +182,6 @@
                 body.appendChild(group);
             });
 
-            // select
             const selectFields = ['page', 'slot', 'command', 'bind'];
             selectFields.forEach((key, idx) => {
                 const group = document.createElement('div');
@@ -187,7 +199,6 @@
                 body.appendChild(group);
             });
 
-            // setpos x/z/y
             const posGroup = document.createElement('div');
             posGroup.className = 'inline-group';
             ['x', 'z', 'y'].forEach((coord, idx) => {
