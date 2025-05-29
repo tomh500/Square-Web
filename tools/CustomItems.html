@@ -286,6 +286,18 @@
         };
         renderEditor();
     }
+function quoteStringValues(yamlStr) {
+    // 匹配键值对中值为不带引号的字符串，排除数字、布尔、null
+    return yamlStr.replace(/^(\s*[^:\s]+:\s*)([^"\d\-\[\{truefalsenull][^\n]*)$/gmi, (match, p1, p2) => {
+        const trimmed = p2.trim();
+        if (trimmed === '') return match;
+        if (/^[-+]?\d+(\.\d+)?$/.test(trimmed)) return match; // 数字不加引号
+        if (/^(true|false|null)$/i.test(trimmed)) return match; // 布尔或null不加
+        // 加双引号并转义内部双引号
+        const escaped = trimmed.replace(/"/g, '\\"');
+        return `${p1}"${escaped}"`;
+    });
+}
 
 function downloadYAML() {
     const output = [];
@@ -301,7 +313,7 @@ function downloadYAML() {
         let yamlBlock = jsyaml.dump({ [id]: cleaned }, {
             skipInvalid: true,
             sortKeys: false,
-            flowLevel: -1  // 全部用 block style
+            flowLevel: -1
         });
 
         // 将 extra 转换为 flow-style
@@ -310,13 +322,15 @@ function downloadYAML() {
             (match, p1, p2) => `extra: ["${p1}", "${p2}"]`
         );
 
-        // 清理 'y': -> y: 避免加引号
+        // 清理 'y': -> y:
         yamlBlock = yamlBlock.replace(/'y':/g, 'y:');
+
+        // 强制给字符串值加双引号
+        yamlBlock = quoteStringValues(yamlBlock);
 
         output.push(yamlBlock.trim());
     }
 
-    // 道具之间用两个换行符分隔
     const finalYaml = output.join('\n\n');
 
     const blob = new Blob([finalYaml], { type: 'application/x-yaml' });
