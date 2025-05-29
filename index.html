@@ -117,6 +117,17 @@
     </div>
   </nav>
 
+  <!-- Popup (保持原有结构，不修改) -->
+  <div id="popup" class="popup" style="display: none;">
+    <div class="popup-content">
+      <span id="close" class="popup-close">&times;</span>
+      <div id="popup-message"></div>
+    </div>
+    <audio id="bgm" preload="auto">
+      <source src="sounds/bgm.mp3" type="audio/ogg">
+    </audio>
+  </div>
+
   <!-- Main Jumbotron -->
   <div class="container">
     <div class="jumbotron text-center">
@@ -127,6 +138,15 @@
         <a class="btn btn-primary btn-lg" href="https://github.com/tomh500/MoClient" role="button">开源地址</a>
       </p>
       <img src="images/CS2.jpg" alt="CS2" class="img-fluid mt-3 rounded" />
+
+      <!-- Second Popup (原有报名弹窗) -->
+      <div id="popup-register" class="popup" style="display: none;">
+        <div class="popup-content">
+          <span id="close-register" class="popup-close">&times;</span>
+          <img src="images/bm.jpg" alt="报名图片" class="popup-image">
+        </div>
+      </div>
+
     </div>
   </div>
 
