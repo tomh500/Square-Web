@@ -286,48 +286,54 @@
         };
         renderEditor();
     }
-function quoteAllValues(yamlStr) {
-    // 匹配冒号后面非空字符串（换行不匹配），给值加双引号
-    // 注意排除已经加引号的，避免重复
-    return yamlStr.replace(/^(\s*[^:\s]+:\s*)([^"\[\{\n][^\n]*)$/gm, (match, p1, p2) => {
-        const trimmed = p2.trim();
-        if (trimmed === '') return match;
-        // 避免重复加引号
-        if (trimmed.startsWith('"') && trimmed.endsWith('"')) return match;
-        // 给值加双引号并转义内部双引号
-        const escaped = trimmed.replace(/"/g, '\\"');
-        return `${p1}"${escaped}"`;
-    });
+function quoteAllValuesRecursive(obj) {
+    if (obj === null || obj === undefined) return '""';
+
+    if (typeof obj === 'object') {
+        if (Array.isArray(obj)) {
+            return obj.map(item => quoteAllValuesRecursive(item));
+        } else {
+            const result = {};
+            for (const key in obj) {
+                result[key] = quoteAllValuesRecursive(obj[key]);
+            }
+            return result;
+        }
+    }
+
+    const str = String(obj);
+    const escaped = str.replace(/"/g, '\\"');
+    return `"${escaped}"`;
 }
 
 function downloadYAML() {
     const output = [];
 
     for (const [id, data] of Object.entries(yamlData)) {
-        // 深拷贝并清理 null/undefined
+        // 先深拷贝，替换 null/undefined 和 "None" 字符串
         const cleaned = JSON.parse(JSON.stringify(data, (key, value) => {
             if (value === null || value === undefined) return "";
             if (value === "None") return "";
             return value;
         }));
 
-        let yamlBlock = jsyaml.dump({ [id]: cleaned }, {
+        // 给所有数值加引号
+        const quotedData = quoteAllValuesRecursive(cleaned);
+
+        let yamlBlock = jsyaml.dump({ [id]: quotedData }, {
             skipInvalid: true,
             sortKeys: false,
             flowLevel: -1
         });
 
-        // 将 extra 转换为 flow-style
+        // 保持 extra 以 flow style 数组显示（["", ""]）
         yamlBlock = yamlBlock.replace(
             /extra:\s*\n\s*-\s*"(.*)"\s*\n\s*-\s*"(.*)"/,
             (match, p1, p2) => `extra: ["${p1}", "${p2}"]`
         );
 
-        // 清理 'y': -> y:
+        // 去除 y 的单引号（如果有）
         yamlBlock = yamlBlock.replace(/'y':/g, 'y:');
-
-        // 给所有值加双引号
-        yamlBlock = quoteAllValues(yamlBlock);
 
         output.push(yamlBlock.trim());
     }
