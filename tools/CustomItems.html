@@ -19,7 +19,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: flex-start;
         }
         button, input[type="file"], input[type="text"] {
@@ -69,17 +69,16 @@
         .inline-group .field-group {
             flex: 1;
         }
-
-        /* FOV计算器样式 */
         .fov-container {
             border: 1px solid #ccc;
             background: #fff;
             border-radius: 6px;
             padding: 15px;
-            width: 320px;
+            width: 360px;
             font-size: 14px;
             color: #333;
-            user-select: none;
+            margin-left: auto;
+            margin-right: 0;
         }
         .fov-container label {
             font-weight: bold;
@@ -112,18 +111,19 @@
 
 <h1>道具配置编辑器 (YAML)</h1>
 <div class="controls">
-    <input type="file" id="fileInput" accept=".yml,.yaml">
-    <button onclick="addEntry()">新增道具</button>
-    <button onclick="downloadYAML()">下载YAML</button>
+    <div>
+        <input type="file" id="fileInput" accept=".yml,.yaml">
+        <button onclick="addEntry()">新增道具</button>
+        <button onclick="downloadYAML()">下载YAML</button>
+    </div>
 
-    <!-- 新增 FOV 计算器区域 -->
     <div class="fov-container" title="点击输出框复制结果">
-        <label for="fovInput">输入 X, A, B（用逗号或空格分隔）:</label>
-        <input id="fovInput" type="text" placeholder="例如：180, 2.52, 1.2" />
-        <label>计算后的 yaw:</label>
-        <div id="yawOutput" class="output-box">-</div>
+        <label for="fovInput">输入 setpos 和 setang 指令:</label>
+        <input id="fovInput" type="text" placeholder='例如：setpos 0 0 0; setang 45 90 0' />
         <label>计算后的 pitch:</label>
         <div id="pitchOutput" class="output-box">-</div>
+        <label>计算后的 yaw:</label>
+        <div id="yawOutput" class="output-box">-</div>
     </div>
 </div>
 
@@ -151,7 +151,22 @@
                 body.style.display = body.style.display === 'none' ? 'block' : 'none';
             };
 
-            // ✅ 唯一标识符 ID 输入
+            // 添加字段
+            function addField(labelText, key, object = g) {
+                const group = document.createElement('div');
+                group.className = 'field-group';
+                const label = document.createElement('label');
+                label.textContent = labelText;
+                const input = document.createElement('input');
+                input.value = object[key] ?? '';
+                input.addEventListener('input', e => {
+                    object[key] = e.target.value;
+                });
+                group.appendChild(label);
+                group.appendChild(input);
+                body.appendChild(group);
+            }
+
             const idGroup = document.createElement('div');
             idGroup.className = 'field-group';
             const idLabel = document.createElement('label');
@@ -172,22 +187,6 @@
             idGroup.appendChild(idLabel);
             idGroup.appendChild(idInput);
             body.appendChild(idGroup);
-
-            // 字段辅助函数
-            function addField(labelText, key, object = g) {
-                const group = document.createElement('div');
-                group.className = 'field-group';
-                const label = document.createElement('label');
-                label.textContent = labelText;
-                const input = document.createElement('input');
-                input.value = object[key] ?? '';
-                input.addEventListener('input', e => {
-                    object[key] = e.target.value;
-                });
-                group.appendChild(label);
-                group.appendChild(input);
-                body.appendChild(group);
-            }
 
             addField("显示名称", 'displayname');
             addField("文件名", 'filename');
@@ -327,66 +326,24 @@
         URL.revokeObjectURL(url);
     }
 
-    // --- FOV 计算器逻辑 ---
+    // --- 替换后的 FOV 逻辑（提取 pitch/yaw） ---
     const fovInput = document.getElementById('fovInput');
     const yawOutput = document.getElementById('yawOutput');
     const pitchOutput = document.getElementById('pitchOutput');
 
-    function roundSix(num) {
-        return Math.round(num * 1e6) / 1e6;
-    }
-
-    function calculateFOV() {
+    fovInput.addEventListener('input', () => {
         const val = fovInput.value.trim();
-        if (!val) {
-            yawOutput.textContent = '-';
-            pitchOutput.textContent = '-';
+        const regex = /setang\s+([-\d.]+)\s+([-\d.]+)/i;
+        const match = val.match(regex);
+        if (!match) {
+            yawOutput.textContent = '格式错误';
+            pitchOutput.textContent = '格式错误';
             return;
         }
 
-        // 支持逗号或空格分隔
-        const parts = val.split(/[\s,]+/).map(s => parseFloat(s));
-        if (parts.length !== 3 || parts.some(isNaN)) {
-            yawOutput.textContent = '输入格式错误';
-            pitchOutput.textContent = '输入格式错误';
-            return;
-        }
+        const pitch = parseFloat(match[1]);
+        const yaw = parseFloat(match[2]);
+        const sensitivity = 2.52;
+        const m_yaw_pitch = 0.022;
 
-        const [X, A, B] = parts;
-        if (A === 0 || B === 0) {
-            yawOutput.textContent = 'A 或 B 不能为 0';
-            pitchOutput.textContent = 'A 或 B 不能为 0';
-            return;
-        }
-
-        const result = roundSix(X / (A * B));
-        yawOutput.textContent = result;
-        pitchOutput.textContent = result;
-    }
-
-    fovInput.addEventListener('input', calculateFOV);
-
-    // 复制功能
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('复制成功: ' + text);
-        }, () => {
-            alert('复制失败，请手动复制');
-        });
-    }
-
-    yawOutput.addEventListener('click', () => {
-        if (yawOutput.textContent && yawOutput.textContent !== '-' && !yawOutput.textContent.includes('错误')) {
-            copyToClipboard(yawOutput.textContent);
-        }
-    });
-    pitchOutput.addEventListener('click', () => {
-        if (pitchOutput.textContent && pitchOutput.textContent !== '-' && !pitchOutput.textContent.includes('错误')) {
-            copyToClipboard(pitchOutput.textContent);
-        }
-    });
-
-</script>
-
-</body>
-</html>
+        if (isNaN(pitch) || isNaN(y
