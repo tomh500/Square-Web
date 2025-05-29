@@ -308,50 +308,45 @@ function quoteAllValues(obj) {
 function downloadYAML() {
   const output = [];
 
-  for (const [id, data] of Object.entries(yamlData)) {
-    // Deep clone & normalize values to strings
-    const cleaned = JSON.parse(JSON.stringify(data, (k, v) => {
-      if (v === null || v === undefined || v === "None") return "";
-      return String(v);
-    }));
+  Object.entries(yamlData).forEach(([id, data]) => {
+    // Clone and stringify all values
+    const cleaned = JSON.parse(JSON.stringify(data, (k, v) => v == null || v === 'None' ? '' : String(v)));
 
-    // Ensure select/setpos as array of single-key string-valued objects
+    // Prepare select and setpos arrays
     ['select', 'setpos'].forEach(field => {
       if (Array.isArray(cleaned[field])) {
-        cleaned[field] = cleaned[field].map(obj => {
-          const key = Object.keys(obj)[0];
-          return { [key]: String(obj[key] ?? '') };
+        cleaned[field] = cleaned[field].map(item => {
+          const key = Object.keys(item)[0];
+          return { [key]: String(item[key] ?? '') };
         });
       }
     });
 
-    // Ensure extra stays as an array of strings
+    // Ensure extra is array of strings
     if (Array.isArray(cleaned.extra)) {
       cleaned.extra = cleaned.extra.map(v => String(v));
     }
 
-    // Generate YAML: block style, inline extra, double-quote all strings
-    let yamlBlock = jsyaml.dump(
-      { [id]: cleaned },
-      {
-        skipInvalid: true,
-        sortKeys: false,
-        flowLevel: -1,
-        styles: { '!!str': 'double' }
-      }
-    );
+    // Dump YAML with forced double quotes and block style
+    let block = jsyaml.dump({ [id]: cleaned }, {
+      skipInvalid: true,
+      sortKeys: false,
+      flowLevel: -1,
+      quotingType: '"',
+      forceQuotes: true
+    });
 
-    // Inline extra array to flow style
-    yamlBlock = yamlBlock.replace(
+    // Convert extra list to inline flow style
+    block = block.replace(
       /extra:\s*\n((?:\s*-\s*".*"\s*\n?)+)/,
-      (match, group) => {
-        const items = [...group.matchAll(/-\s*"(.*?)"/g)].map(m => m[1]);
-        return `extra: [${items.map(s => `"${s}"`).join(', ')}]`;
+      (m, list) => {
+        const vals = Array.from(list.matchAll(/-\s*"(.*?)"/g), m => m[1]);
+        return `extra: [${vals.map(v => `"${v}"`).join(', ')}]`;
       }
     );
 
-    output.push(yamlBlock.trim());
-  }
+    output.push(block.trim());
+  });
 
   const finalYaml = output.join('\n\n');
   const blob = new Blob([finalYaml], { type: 'application/x-yaml' });
