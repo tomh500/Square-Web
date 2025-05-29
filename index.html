@@ -54,8 +54,8 @@
   </nav>
 
   <!-- 弹窗 -->
-  <div id="popup" class="popup d-flex">
-    <div class="popup-content">
+  <div id="popup" class="popup">
+    <div class="popup-content d-flex justify-content-center align-items-center">
       <span id="popupClose" class="popup-close">&times;</span>
       <img src="images/bm.jpg" alt="报名图片" class="popup-image">
     </div>
@@ -185,9 +185,15 @@
     const popup = document.getElementById('popup');
     const btnShow = document.getElementById('btnShow');
     const popupClose = document.getElementById('popupClose');
-    btnShow.addEventListener('click', () => popup.style.display = 'flex');
-    popupClose.addEventListener('click', () => popup.style.display = 'none');
-    popup.addEventListener('click', e => { if (e.target === popup) popup.style.display = 'none'; });
+    btnShow.addEventListener('click', () => {
+      popup.style.display = 'flex';
+    });
+    popupClose.addEventListener('click', () => {
+      popup.style.display = 'none';
+    });
+    popup.addEventListener('click', e => {
+      if (e.target === popup) popup.style.display = 'none';
+    });
   </script>
 </body>
 </html>
