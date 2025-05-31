@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>道具配置编辑器 (YAML 版)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <style>
   /* —— 1. 定义樱花粉色系变量 —— */
@@ -121,53 +123,67 @@
   }
 
 @media (max-width: 768px) {
-  body {
-    padding: 10px;
-  }
+  body {
+    padding: 10px;
+  }
 
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
+  h1, h4 {
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.4;
+    padding: 0 10px;
+  }
 
-  .controls input[type="file"],
-  .controls button,
-  .controls select {
-    width: 100%;
-    font-size: 16px;
-  }
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 0 10px;
+  }
 
-  .controls > div {
-    width: 100%;
-    flex-direction: column;
-    gap: 8px;
-    margin-left: 0 !important;
-  }
+  .controls > * {
+    width: 100% !important;
+  }
 
-  .controls input[type="text"] {
-    width: 100% !important;
-    font-size: 14px;
-  }
+  .controls input[type="file"],
+  .controls button,
+  .controls select,
+  .controls input[type="text"] {
+    font-size: 16px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
 
-  .grenade-entry {
-    margin-bottom: 15px;
-  }
+  .controls > div {
+    margin-left: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 
-  .grenade-header {
-    font-size: 16px;
-    padding: 12px;
-  }
+  #calcInput,
+  #outputPitch,
+  #outputYaw {
+    width: 100% !important;
+  }
 
-  .grenade-body {
-    padding: 12px;
-  }
+  .grenade-entry {
+    margin-bottom: 15px;
+  }
 
-  .inline-group {
-    flex-direction: column;
-  }
+  .grenade-header {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .grenade-body {
+    padding: 12px;
+  }
+
+  .inline-group {
+    flex-direction: column;
+  }
 }
-
 </style>
 
 </head>
