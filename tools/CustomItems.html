@@ -143,8 +143,8 @@
 
     <div style="display: flex; flex-direction: column; gap: 5px; margin-left: 20px;">
         <input type="text" id="calcInput" placeholder='输入 setpos 和 setang 命令' style="width: 400px;">
-        <input type="text" id="outputPitch" placeholder="Pitch 输出" readonly>
-        <input type="text" id="outputYaw" placeholder="Yaw 输出" readonly>
+        <input type="text" id="outputPitch" placeholder="Pitch所需角度（Sensitivity=2.52）" readonly>
+        <input type="text" id="outputYaw" placeholder="Yaw 所需角度（Sensitivity=2.52）" readonly>
     </div>
 </div>
 
@@ -309,8 +309,9 @@
         const resultPitch = (pitch / (sensitivity * yawPitchRatio)).toFixed(6);
         const resultYaw = (-1 * yaw / (sensitivity * yawPitchRatio)).toFixed(6);
 
-        document.getElementById('outputPitch').value = `pitch ${resultPitch} 1 1`;
-        document.getElementById('outputYaw').value = `yaw ${resultYaw} 1 1`;
+        document.getElementById('outputPitch').value = resultPitch;
+
+        document.getElementById('outputYaw').value = resultYaw;
     } else {
         document.getElementById('outputPitch').value = '';
         document.getElementById('outputYaw').value = '';
