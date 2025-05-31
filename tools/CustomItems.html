@@ -119,6 +119,55 @@
   .inline-group .field-group {
     flex: 1;
   }
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .controls input[type="file"],
+  .controls button,
+  .controls select {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .controls > div {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 0 !important;
+  }
+
+  .controls input[type="text"] {
+    width: 100% !important;
+    font-size: 14px;
+  }
+
+  .grenade-entry {
+    margin-bottom: 15px;
+  }
+
+  .grenade-header {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .grenade-body {
+    padding: 12px;
+  }
+
+  .inline-group {
+    flex-direction: column;
+  }
+}
+
 </style>
 
 </head>
