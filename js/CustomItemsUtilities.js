@@ -246,7 +246,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'Custom.yml';
+      a.download = 'custom.yml';
       a.click();
       URL.revokeObjectURL(url);
   }
